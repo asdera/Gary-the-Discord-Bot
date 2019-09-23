@@ -3,6 +3,15 @@ var logger = require('winston');
 var auth = require('./auth.json');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
+const request = require('request');
+const cheerio = require('cheerio');
+
+// Imports the Google Cloud client library
+const language = require('@google-cloud/language');
+
+// Creates a client
+const client = new language.LanguageServiceClient();
+
 var privateChannel = "341317901330153482";
 var admin = "220283093804646400";
 
@@ -67,6 +76,7 @@ bot.on('ready', function (evt) {
 bot.on('message', function (user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
+    
     if (message.substring(0, 1) == '!') {
         // logger.info(channelID);
 
@@ -82,21 +92,24 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 });
             break;
             case 'fact':
-                // bot.sendMessage({
-                //     to: channelID,
-                //     message: 'https://media.giphy.com/media/SqCC8b4mWQvbLlm5Sn/giphy.gif'
-                // });
+                text = args.join(" ");
 
+                getWiki(channelID, text);                  
+
+            break;
+            case 'search':
                 search = args.join(" ");
 
                 getSearch(channelID, search, num);                 
 
             break;
+            case 'g':
+                text = args.join(" ");
+
+                getEntity(channelID, text);                 
+
+            break;
             case 'gif':
-                // bot.sendMessage({
-                //     to: channelID,
-                //     message: 'https://media.giphy.com/media/SqCC8b4mWQvbLlm5Sn/giphy.gif'
-                // });
 
                 var num;
 
@@ -206,28 +219,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
      }
 });
 
-Number.prototype.pad = function(size) {
-    var s = String(this);
-    while (s.length < (size || 2)) {s = "0" + s;}
-    return s;
-}
-
-Array.prototype.random = function () {
-    return this[Math.floor((Math.random()*this.length))];
-}
-
-async function remind() {
-    bot.sendMessage({
-        to: privateChannel,
-        message: "<@"+admin+"> "+hours+":"+minutes.pad()
-    });
-}
-
-
-
 async function getSearch(channelID, search) {
 
-    var xhrString = "https://www.googleapis.com/customsearch/v1?key=" + searchApikey + "&cx=017576662512468239146:omuauf_lfve&q=" + search.replace(/ /g,"+");
+    var xhrString = "https://www.googleapis.com/customsearch/v1?key=" + searchApikey + "&cx=001673406622418809124:t3utvrlqfcb&q=" + search.replace(/ /g,"+");
 
     var request = new XMLHttpRequest(xhrString);
 
@@ -240,6 +234,8 @@ async function getSearch(channelID, search) {
             // console.log("Success got data", data);
             
             console.log(data);
+            console.log("XXXXXXXXXXXXXXXX");
+            console.log(data.items[0].pagemap);
 
         } else {
             console.log("Error");
@@ -251,6 +247,94 @@ async function getSearch(channelID, search) {
     };
 
     request.send();
+}
+
+async function getWiki(channelID, text, force=true) {
+    request('https://en.wikipedia.org/wiki/' + text, (error, response, html) => {
+    if (!error && response.statusCode == 200) {
+        const $ = cheerio.load(html);
+
+        var facts = [];
+
+        $('.mw-parser-output > p').each((i, el) => {
+            // console.log("\n\n\n");
+            // console.log(i, $(el).text());
+            facts.push($(el).text());
+        });
+
+        console.log('Scraping Done...');
+
+        facts = facts.map(fact => cleanFact(fact)).filter(Boolean);
+
+        var fact = facts.random();
+
+        if (facts.length == 0) {
+            bot.sendMessage({
+                to: channelID,
+                message: "**No Fun Facts Found D:**"
+            });
+        } else if (fact.slice(-1) == ":") {
+            var refers = [];
+
+            $('.mw-parser-output > ul > li > a').each((i, el) => {
+                console.log("\n\n\n");
+                console.log(i, $(el).attr('href'));
+                refers.push($(el).attr('href').substring(6));
+            });
+
+            refer = refers.random();
+
+            bot.sendMessage({
+                to: channelID,
+                message: fact.slice(0, -1) + " **" + refer.replace(/_/g, ' ') + "**"
+            });
+
+            if (force) {
+                setTimeout(async () => { 
+                    getWiki(channelID, refer);
+                }, 2000);
+            }
+        } else {
+            bot.sendMessage({
+                to: channelID,
+                message: "**Fun Fact: **" + fact
+            });
+        }
+    } else {
+        console.log(error + response.statusCode);
+        bot.sendMessage({
+            to: channelID,
+            message: "**No Fun Facts Found D:**"
+        });
+    }
+    });
+}
+
+async function getEntity(channelID, text) {
+    /**
+     * TODO(developer): Uncomment the following line to run this code.
+     */
+    // const text = 'Your text to analyze, e.g. Hello, world!';
+
+    // Prepares a document, representing the provided text
+    const document = {
+        content: text,
+        type: 'PLAIN_TEXT',
+    };
+
+    // Detects entities in the document
+    const [result] = await client.analyzeEntities({document});
+
+    const entities = result.entities;
+
+    console.log('Entities:');
+    entities.forEach(entity => {
+        console.log(entity.name);
+        console.log(` - Type: ${entity.type}, Salience: ${entity.salience}`);
+        if (entity.metadata && entity.metadata.wikipedia_url) {
+            console.log(` - Wikipedia URL: ${entity.metadata.wikipedia_url}$`);
+        }
+    });
 }
 
 async function getGif(channelID, search, num, limit=8) {
@@ -294,4 +378,26 @@ async function getGif(channelID, search, num, limit=8) {
     };
 
     request.send();
+}
+
+
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+    return s;
+}
+
+Array.prototype.random = function () {
+    return this[Math.floor((Math.random()*this.length))];
+}
+
+async function remind() {
+    bot.sendMessage({
+        to: privateChannel,
+        message: "<@"+admin+"> "+hours+":"+minutes.pad()
+    });
+}
+
+function cleanFact(fact) {
+    return fact.replace(/ *\([^)]*\) */g, "").replace(/ *\[[^)]*\] */g, "").replace(/ *\{[^)]*\} */g, "").replace(/\s+/g, ' ').trim();
 }
