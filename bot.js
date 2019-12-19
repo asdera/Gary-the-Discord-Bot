@@ -120,6 +120,14 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         
             args = args.splice(1);
             switch(cmd.toLowerCase()) {
+                case 'wones':
+                    console.log(userID)
+                    bot.addToRole({
+                        serverID: allChat,
+                        userID: userID,
+                        roleID: 558410514682740738
+                    });
+                    break;
                 case 'ajm':
                     if (userID != jai) {
                         var victim = jai;
@@ -307,6 +315,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 break;
                 case 'g':
                     text = args.join(" ");
+                    console.log(text);
                     getEntity(channelID, text);                 
                 break;
                 case 'gif':
