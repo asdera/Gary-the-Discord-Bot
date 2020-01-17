@@ -1,20 +1,31 @@
 {
-    "name": "greeter-bot",
-    "version": "1.0.0",
-    "description": "My First Discord Bot",
-    "main": "bot.js",
-    "author": "Your Name",
-    "dependencies": {
-        "@google-cloud/language": "^3.3.0",
-        "@google-cloud/speech": "^3.3.0",
-        "cheerio": "^1.0.0-rc.3",
-        "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
-        "jquery": "^3.4.1",
-        "request": "^2.88.0",
-        "winston": "^3.2.1",
-        "xmlhttprequest": "^1.8.0"
-    }, 
-    "scripts": { 
-        "start" : "node bot.js" 
-    }
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "My First Discord Bot",
+  "main": "bot.js",
+  "author": "Your Name",
+  "dependencies": {
+    "@google-cloud/language": "^3.7.0",
+    "@google-cloud/speech": "^3.5.4",
+    "cheerio": "^1.0.0-rc.3",
+    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
+    "jquery": "^3.4.1",
+    "request": "^2.88.0",
+    "winston": "^3.2.1",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asdera/Gary-the-Discord-Bot.git"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asdera/Gary-the-Discord-Bot/issues"
+  },
+  "homepage": "https://github.com/asdera/Gary-the-Discord-Bot#readme"
 }
