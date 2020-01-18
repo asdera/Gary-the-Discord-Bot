@@ -1,6 +1,6 @@
 ﻿# Gary the Goose Discord Bot
  
-I'll help you with any of these commands
+I'll help you with any of these commands. Click the website link above to add him to your server!
  
 - !hello - I'll say hello back! 
 - !sleep - I'll take a nap! 
