@@ -9,7 +9,7 @@
     "@google-cloud/speech": "^3.5.4",
     "cheerio": "^1.0.0-rc.3",
     "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "request": "^2.88.0",
     "winston": "^3.2.1",
     "xmlhttprequest": "^1.8.0"
